@@ -19,16 +19,143 @@ enum Role {
   ADMIN
 }
 
-model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  username  String   
-  password  String
-  refreshToken String?
-  role      Role     @default(STUDENT)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+enum MaterialType {
+  NOTE
+  DOCUMENT
+  REFERENCE
 }
 
+enum SubmissionStatus {
+  PENDING
+  SUBMITTED
+  GRADED
+  RETURNED
+  LATE
+}
 
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  username     String
+  password     String
+  refreshToken String?
+  role         Role      @default(STUDENT)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
+  // Relations
+  taughtCourses Course[]        @relation("TeacherCourses")
+  enrollments   Enrollment[]
+  submissions   Submission[]
+  sentMessages  Message[]       @relation("SentMessages")
+  receivedMessages Message[]    @relation("ReceivedMessages")
+  materials     Material[]
+
+  @@index([email])
+  @@index([role])
+}
+
+model Course {
+  id          String   @id @default(cuid())
+  name        String
+  code        String   @unique
+  description String?
+  teacherId   String
+  teacher     User     @relation("TeacherCourses", fields: [teacherId], references: [id], onDelete: Restrict)
+  isActive    Boolean  @default(true)  // ← archive courses without deleting
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  materials   Material[]
+  assignments Assignment[]
+  enrollments Enrollment[]
+
+  @@index([teacherId])
+  @@index([code])
+}
+
+model Enrollment {
+  userId    String
+  courseId  String
+  joinedAt  DateTime @default(now())
+  
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade) // ← delete enrollments if course deleted
+
+  @@id([userId, courseId])
+  @@index([courseId])
+}
+
+model Material {
+  id         String       @id @default(cuid())
+  courseId   String
+  course     Course       @relation(fields: [courseId], references: [id], onDelete: Cascade) // ← delete materials if course deleted
+  uploaderId String
+  uploader   User         @relation(fields: [uploaderId], references: [id], onDelete: Restrict)
+  
+  type       MaterialType
+  title      String
+  fileUrl    String
+  fileSize   Int?
+  uploadedAt DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt  // ← track edits
+
+  @@index([courseId])
+  @@index([uploaderId])
+}
+
+model Assignment {
+  id          String   @id @default(cuid())
+  courseId    String
+  course      Course   @relation(fields: [courseId], references: [id], onDelete: Cascade) // ← delete assignments if course deleted
+  
+  title       String
+  description String
+  dueDate     DateTime
+  maxPoints   Int
+  isPublished Boolean  @default(false) // ← draft before publishing to students
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  submissions Submission[]
+
+  @@index([courseId])
+  @@index([dueDate])
+}
+
+model Submission {
+  id           String           @id @default(cuid())
+  assignmentId String
+  assignment   Assignment       @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  studentId    String
+  student      User             @relation(fields: [studentId], references: [id], onDelete: Restrict)
+  
+  fileUrl      String
+  submittedAt  DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt  // ← track resubmissions
+  
+  status       SubmissionStatus @default(SUBMITTED)
+  grade        Int?
+  feedback     String?
+  gradedAt     DateTime?
+
+  @@unique([assignmentId, studentId])
+  @@index([studentId])
+  @@index([status])
+}
+
+model Message {
+  id         String   @id @default(cuid())
+  senderId   String
+  sender     User     @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  receiverId String
+  receiver   User     @relation("ReceivedMessages", fields: [receiverId], references: [id], onDelete: Cascade)
+  
+  content    String
+  isRead     Boolean  @default(false)
+  readAt     DateTime? // ← track exactly when message was read
+  createdAt  DateTime @default(now())
+
+  @@index([senderId, createdAt])
+  @@index([receiverId, createdAt])
+}
