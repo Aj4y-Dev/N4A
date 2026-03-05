@@ -24,6 +24,7 @@ model User {
   email     String   @unique
   username  String   
   password  String
+  refreshToken String?
   role      Role     @default(STUDENT)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
