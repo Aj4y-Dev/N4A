@@ -18,6 +18,7 @@ const generateAccessAndRefreshToken: (userId: string) => Promise<{
       id: user.id,
       username: user.username,
       email: user.email,
+      role: user.role,
     },
     process.env.ACCESS_TOKEN_SECRET as string,
     { expiresIn: process.env.ACCESS_TOKEN_EXPIRY as string },
@@ -27,6 +28,7 @@ const generateAccessAndRefreshToken: (userId: string) => Promise<{
       id: user.id,
       username: user.username,
       email: user.email,
+      role: user.role,
     },
     process.env.REFRESH_TOKEN_SECRET as string,
     { expiresIn: process.env.REFRESH_TOKEN_EXPIRY as string },
@@ -69,7 +71,7 @@ export const handleUserSignUp = asyncHandler(
     // Remove the password field from the user object before sending response
     const { password: _, ...userWithoutPassword } = user;
 
-    return res.status(201).json({
+    res.status(201).json({
       success: true,
       message: "Registration created successfully",
       data: userWithoutPassword,
@@ -117,7 +119,7 @@ export const handleUserLogin = asyncHandler(
       },
     });
 
-    return res
+    res
       .status(200)
       .cookie("accessToken", accessToken, options)
       .cookie("refreshToken", refreshToken, options)

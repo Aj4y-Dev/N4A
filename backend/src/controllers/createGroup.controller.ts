@@ -33,7 +33,7 @@ export const handleCreateGroup = asyncHandler(
       },
     });
 
-    return res.status(201).json({
+    res.status(201).json({
       success: true,
       data: course,
     });
@@ -60,7 +60,7 @@ export const getAllGroups = asyncHandler(
 
     if (!courses.length) throw new ApiError(404, "No courses found");
 
-    return res.status(200).json({
+    res.status(200).json({
       success: true,
       data: courses,
     });
