@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "rootDir": ".", // include everything in the backend folder
+    "outDir": "dist", // compiled JS files will go here
+    "module": "ESNext",
+    "target": "ES2022",
+    "moduleResolution": "bundler",
+    "esModuleInterop": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true
+  },
+  "include": [
+    "src/**/*", // all your source TS files
+    "prisma.config.ts" // include the outer prisma config
+  ],
+  "exclude": ["node_modules"]
+}
