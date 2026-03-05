@@ -4,6 +4,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/apiError.js";
+import { Role } from "../../generated/prisma/index.js";
 
 const generateAccessAndRefreshToken: (userId: string) => Promise<{
   accessToken: string;
@@ -130,3 +131,30 @@ export const handleUserLogin = asyncHandler(
       });
   },
 );
+
+export const grantRoleTeacher = asyncHandler(async (req, res) => {
+  const id = req.params.id as string;
+
+  if (!id) throw new ApiError(400, "ID is required");
+  if (!id.startsWith("c")) throw new ApiError(400, "Invalid ID format");
+
+  const teacherToBe = await prisma.user.findUnique({ where: { id } });
+  if (!teacherToBe) throw new ApiError(400, "User not found");
+
+  const updatedTeacher = await prisma.user.update({
+    where: { id },
+    data: { role: Role.TEACHER },
+    select: {
+      id: true,
+      email: true,
+      username: true,
+      role: true,
+    },
+  });
+
+  res.status(200).json({
+    success: true,
+    data: updatedTeacher,
+    message: "Teacher Role Granted Successfully",
+  });
+});
