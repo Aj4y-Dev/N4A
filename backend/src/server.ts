@@ -22,8 +22,8 @@ app.use(
 );
 app.use(cookieParser());
 
-app.use("/api/v1", userRouter);
-app.use("/api/v1", createGroupRouter);
+app.use("/api/v1/users", userRouter);
+app.use("/api/v1/courses", createGroupRouter);
 
 app.use((err: IApiError, req: Request, res: Response, next: NextFunction) => {
   console.log(err.stack);

@@ -6,5 +6,5 @@ import {
 
 export const userRouter = express.Router();
 
-userRouter.post("/user/signup", handleUserSignUp);
-userRouter.post("/user/login", handleUserLogin);
+userRouter.post("/signup", handleUserSignUp);
+userRouter.post("/login", handleUserLogin);
