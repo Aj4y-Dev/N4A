@@ -40,14 +40,12 @@ const generateAccessAndRefreshToken: (userId: string) => Promise<{
   return { accessToken, refreshToken };
 };
 
-export const handleUserSignUp = async (req: Request, res: Response) => {
-  try {
+export const handleUserSignUp = asyncHandler(
+  async (req: Request, res: Response) => {
     const { email, username, password } = req.body || {};
 
     if (!email || !username || !password) {
-      return res
-        .status(400)
-        .json({ status: false, message: "All filed required" });
+      throw new ApiError(400, "All field are required...");
     }
 
     const existUser = await prisma.user.findUnique({
@@ -55,9 +53,7 @@ export const handleUserSignUp = async (req: Request, res: Response) => {
     });
 
     if (existUser) {
-      return res
-        .status(400)
-        .json({ status: false, message: "email Already exist" });
+      throw new ApiError(400, "email Already exist");
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -70,23 +66,6 @@ export const handleUserSignUp = async (req: Request, res: Response) => {
       },
     });
 
-    const token = jwt.sign(
-      {
-        id: user.id,
-        username: user.username,
-        role: user.role,
-      },
-      process.env.JWT_SECRET as string,
-      {
-        expiresIn: "7d",
-      },
-    );
-
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: false, //true in production
-    });
-
     // Remove the password field from the user object before sending response
     const { password: _, ...userWithoutPassword } = user;
 
@@ -95,13 +74,8 @@ export const handleUserSignUp = async (req: Request, res: Response) => {
       message: "Registration created successfully",
       data: userWithoutPassword,
     });
-  } catch (error) {
-    console.log("error in handleUserSignup", error);
-    return res
-      .status(500)
-      .json({ status: false, message: "internal server error" });
-  }
-};
+  },
+);
 
 export const handleUserLogin = asyncHandler(
   async (req: Request, res: Response) => {
@@ -128,12 +102,20 @@ export const handleUserLogin = asyncHandler(
 
     const options: CookieOptions = {
       httpOnly: true,
-      secure: false, //true in development
+      secure: false, //true in production (HTTPS)
       sameSite: "strict",
     };
 
-    // Remove the password field from the user object before sending response
-    const { password: _, ...userWithoutPassword } = existingUser;
+    const updatedUser = await prisma.user.findUnique({
+      where: { email },
+      select: {
+        id: true,
+        email: true,
+        username: true,
+        refreshToken: true,
+        role: true,
+      },
+    });
 
     return res
       .status(200)
@@ -142,7 +124,7 @@ export const handleUserLogin = asyncHandler(
       .json({
         success: true,
         message: "Login successfully",
-        data: userWithoutPassword,
+        data: updatedUser,
       });
   },
 );
