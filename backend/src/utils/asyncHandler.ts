@@ -5,7 +5,7 @@ export const asyncHandler = (
     req: Request,
     res: Response,
     next: NextFunction,
-  ) => Promise<Response>,
+  ) => Promise<void>,
 ): RequestHandler => {
   return (req: Request, res: Response, next: NextFunction) => {
     Promise.resolve(requestHandler(req, res, next)).catch((error) =>
