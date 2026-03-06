@@ -5,7 +5,7 @@ import cookieParser from "cookie-parser";
 
 import { userRouter } from "./routers/auth.route";
 import { IApiError } from "./utils/apiError";
-import { createGroupRouter } from "./routers/createGroup.route";
+import { courseRouter } from "./routers/course.route";
 
 dotenv.config();
 
@@ -22,8 +22,11 @@ app.use(
 );
 app.use(cookieParser());
 
+// Routes:
+// userRoutes:
 app.use("/api/v1/users", userRouter);
-app.use("/api/v1/courses", createGroupRouter);
+// courseRoutes:
+app.use("/api/v1/courses", courseRouter);
 
 app.use((err: IApiError, req: Request, res: Response, next: NextFunction) => {
   console.log(err.stack);

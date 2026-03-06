@@ -4,7 +4,7 @@ import { prisma } from "../lib/prisma.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/apiError.js";
 
-export const handleCreateGroup = asyncHandler(
+export const createCourse = asyncHandler(
   async (req: Request, res: Response) => {
     const { name, code, description } = req.body;
 
@@ -40,7 +40,7 @@ export const handleCreateGroup = asyncHandler(
   },
 );
 
-export const getAllGroups = asyncHandler(
+export const getAllCourses = asyncHandler(
   async (req: Request, res: Response) => {
     if (!req.user) {
       throw new ApiError(401, "Unauthorized");
