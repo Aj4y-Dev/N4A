@@ -6,6 +6,7 @@ import cookieParser from "cookie-parser";
 import { userRouter } from "./routers/auth.route";
 import { IApiError } from "./utils/apiError";
 import { courseRouter } from "./routers/course.route";
+import { reqEnrollRouter } from "./routers/requestEnroll.route";
 
 dotenv.config();
 
@@ -27,6 +28,8 @@ app.use(cookieParser());
 app.use("/api/v1/users", userRouter);
 // courseRoutes:
 app.use("/api/v1/courses", courseRouter);
+// reqErollRouter:
+app.use("/api/v1/courses", reqEnrollRouter);
 
 app.use((err: IApiError, req: Request, res: Response, next: NextFunction) => {
   console.log(err.stack);
